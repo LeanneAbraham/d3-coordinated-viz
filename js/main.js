@@ -6,14 +6,12 @@ window.onload = setMap();
 function setMap(){
     //use d3.queue to parallelize asynchronous data loading
     d3.queue()
-        .defer(d3.csv, "data/unitsData.csv") //load attributes from csv
-        .defer(d3.json, "data/EuropeCountries.topojson") //load background spatial data
-        .defer(d3.json, "data/FranceProvinces.topojson") //load choropleth spatial data
+        .defer(d3.csv, "data/CBWaterQuality.csv") //load attributes from csv
+        .defer(d3.json, "data/Watershed.topojson") //load choropleth spatial data
         .await(callback);
-    function callback(error, csvData, europe, france){
+    function callback(error, waterQuality, watershed){
         console.log(error);
-        console.log(csvData);
-        console.log(europe);
-        console.log(france);
+        console.log(waterQuality);
+        console.log(watershed);
         };
 };
