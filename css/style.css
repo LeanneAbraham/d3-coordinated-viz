@@ -1,10 +1,15 @@
-.map {
+/*.map {
   fill: blue;
   stroke: black;
   stroke-width: 1px;
-}
+}*/
 .boundaries {
     fill: tomato;
     stroke: white;
     stroke-width: .5px;
+}
+.gratLines {
+    fill: none;
+    stroke: #999;
+    stroke-width: 1px;
 }

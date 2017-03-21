@@ -16,13 +16,14 @@ window.onload = setMap();
           .attr("height", height);
 
       //create Albers equal area conic projection centered on Chesapeake Bay
+      //this still needs somme tweaking
       var projection = d3.geoAlbers()
               .center([18, 40.25])
               //.rotate([0, 0, 0])
               .parallels([43, 62])
               .scale(3450)
               .translate([width / 2, height / 2]);
-
+          //puts the paths on the screen
           var path = d3.geoPath()
               .projection(projection);
 
@@ -33,6 +34,10 @@ window.onload = setMap();
         .defer(d3.json, "data/Watershed.topojson") //load choropleth spatial data
         .await(callback);
     function callback(error, waterQuality, watershed){
+      //create graticule generator
+      //this isnt working??
+        var graticule = d3.geoGraticule()
+            .step([5, 5]); //place graticule lines every 5 degrees of longitude and latitude
         //translate watershed TopoJSON back to GeoJSON
         var features = topojson.feature(watershed,  watershed.objects.Watershed).features;
         //add watersheds to map
