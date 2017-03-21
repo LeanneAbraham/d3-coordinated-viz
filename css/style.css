@@ -3,13 +3,14 @@
   stroke: black;
   stroke-width: 1px;
 }*/
-.boundaries {
+.watershedBounds {
     fill: tomato;
     stroke: white;
     stroke-width: .5px;
 }
-.gratLines {
+/*.gratLines {
+    not working in the code
     fill: none;
     stroke: #999;
     stroke-width: 1px;
-}
+}*/
