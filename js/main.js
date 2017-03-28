@@ -10,8 +10,8 @@
 
     //map frame dimensions
     //why isn't inner width responsive?
-    var width = window.innerWidth * 0.5,
-    height = 400;
+    var width = 700,
+    height = 700;
 
     //create new svg container for the map
     var map = d3.select("body")
@@ -24,9 +24,9 @@
     //this still needs somme tweaking
     var projection = d3.geoAlbers()
     .center([0, 40])
-    .rotate([77.3, 0, 0])
+    .rotate([76.1, 0, 0])
     .parallels([36.6, 43.2])
-    .scale(3450)
+    .scale(4200)
     .translate([width / 2, height / 2]);
     //puts the paths on the screen
     var path = d3.geoPath()
@@ -44,13 +44,12 @@
       var waterPoly = topojson.feature(watershed,  watershed.objects.Watershed).features;
       var states = topojson.feature(states,  states.objects.States).features;
 
-
       //call Data Join loop
       joinData(waterPoly, waterQuality);
       //create the color scale
       var colorScale = makeColorScale (waterQuality);
       //call adding polygons to map
-      layers (waterPoly, map, path, colorScale);
+      layers (waterPoly, map, path, colorScale,states);
       //add the coordinated viz to the page
       setChart (waterPoly, colorScale);
     };
@@ -58,27 +57,31 @@
   //end of Set Map
   //adds the json layers
   function layers (waterPoly, map, path, colorScale, states){
-    // //starting to code for adding state layer for context
-    var stateBounds = map.append('path')
-      .datum(states)
-      .attr("class", "states")
-      .attr("d", path);
-console.log(stateBounds);
     //add watersheds to map
     //waterPoly are the watershed polygons
     var watershedBounds = map.append('g')
-    .attr('class', 'watershed');
+      .attr('class', 'watershed');
     //adding color scheme etc to watershedpolys
     watershedBounds.selectAll(".watershedBounds")
-    .data(waterPoly)
-    .enter()
-    .append("path")
-    .attr("class", "watershedBounds")
-    .attr("d", path)
-    .style("fill", function(d){
-      return colorScale(d.properties[expressed]);
+      .data(waterPoly)
+      .enter()
+      .append("path")
+      .attr("class", "watershedBounds")
+      .attr("d", path)
+      .style("fill", function(d){
+        return colorScale(d.properties[expressed]);
     });
     //styling neutral values in the CSS
+    //starting to code for adding state layer for context
+    var stateBounds = map.append('g')
+      .attr("class", "states");
+
+    stateBounds.selectAll(".stateBounds")
+      .data(states)
+      .enter()
+      .append("path")
+      .attr("class", "states")
+      .attr("d", path);
   };
   //joins the csv data to the polygons
   function joinData (waterPoly, waterQuality){
@@ -138,8 +141,8 @@ console.log(stateBounds);
   //function to create coordinated bar chart
   function setChart(waterPoly, colorScale){
     //chart frame dimensions
-    var chartWidth = window.innerWidth * 0.5,
-        chartHeight = 400;
+    var chartWidth = 700,
+        chartHeight = 700;
 
     //create a second svg element to hold the bar chart
     var chart = d3.select("body")
@@ -150,8 +153,8 @@ console.log(stateBounds);
 
     //create a scale to size bars proportionally to frame
     var yScale = d3.scaleLinear()
-      .range([0, chartHeight])
-      .domain([0, 12]);
+      .range([0,chartHeight])
+      .domain([1, 16]);
 
     //loops over waterPoly attaches a new property to each feature that contains the number I want to use in the chart
     for (var i = 0; i < waterPoly.length; i++){
@@ -166,51 +169,48 @@ console.log(stateBounds);
     }
 
     //set bars for each watershed
-    var bars = chart.selectAll(".bars")
+    var bars = chart.selectAll("g")
       .data(waterPoly)
       .enter()
-      .append("rect")
+      .append("g");
+    //create the bars themselves
+    bars.append("rect")
+      .attr("class","bars")
       .sort(function(a, b){
-        return b.chartValue - a.chartValue;
-      })
-      .attr("class", function(d){
-        return "bars " + d.adm1_code;
-      })
-      .attr("width", chartWidth / waterPoly.length - 1)
-      .attr("x", function(d, i){
+        return a.chartValue - b.chartValue;
+        })
+      .attr("height", chartWidth / waterPoly.length -5)
+      .attr("width", function(d){
+        return yScale(d.chartValue)*.55;
+        })
+      .attr("y", function(d, i){
         return i * (chartWidth / waterPoly.length);
-      })
-      .attr("height", function(d){
-        return yScale(d.chartValue);
-      })
-      .attr("y", function(d){
-        return chartHeight - yScale(d.chartValue);
-      })
+        })
+      // .attr("x", function(d){
+      //   return chartHeight - yScale(d.chartValue);
+      //   })
+      .attr("x", "0")
       .style("fill", function(d){
         return colorScale(d.chartValue);
-      });
+        });
 
     //annotate bars with attribute value text
-    var numbers = chart.selectAll(".numbers")
-      .data(waterPoly)
-      .enter()
-      .append("text")
-      .sort(function(a, b){
-        return a[expressed]-b[expressed]
+    bars.append("text")
+      .sort(function(b,a){
+        return b.chartValue - a.chartValue;
       })
-      .attr("class", function(d){
-        return "numbers " + d.adm1_code;
-      })
-      .attr("text-anchor", "middle")
-      .attr("x", function(d, i){
-        var fraction = chartWidth / waterPoly.length;
-        return i * fraction + (fraction - 1) / 2;
-      })
-      .attr("y", function(d){
-        return chartHeight - yScale(parseFloat(d[expressed])) + 15;
-      })
+      .attr("class", "numbers")
+      // .attr("text-anchor", "middle")
+      .attr("x", function(d){
+        return (yScale(d.chartValue)*.55)+5;
+        })
+      .attr("y", function(d, i){
+        return i * (chartWidth / waterPoly.length)+7;
+        })
       .text(function(d){
-        return d[expressed];
+        var format = d3.format(",.2f")
+        return format(d.chartValue);
       });
   };
+  
 })(); //last line of main.js
