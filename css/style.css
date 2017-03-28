@@ -1,16 +1,26 @@
-/*.map {
-  fill: blue;
-  stroke: black;
-  stroke-width: 1px;
-}*/
+body, #mydiv {
+  margin: 0;
+  padding: 0;
+}
+.map {
+  width: 49%;
+  border: medium solid #999;
+  border-width: thin;
+  float: right;
+}
 .watershedBounds {
     fill: #e0eeee;
     stroke: white;
     stroke-width: .5px;
 }
-/*.gratLines {
-    not working in the code
-    fill: none;
-    stroke: #999;
-    stroke-width: 1px;
-}*/
+.chart {
+  width: 50%;
+  border: medium solid #999;
+  border-width: thin;
+  float: left;
+}
+.states {
+    fill: #FFF;
+    stroke: #CCC;
+    stroke-width: 2px;
+}
