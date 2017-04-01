@@ -1,5 +1,5 @@
 body {
-  max-width: 1100px;
+  /*max-width: 1100px;*/
   margin: auto;
   padding: 0;
 }
@@ -19,12 +19,12 @@ body {
   width: 50%;
   border: medium solid #999;
   border-width: thin;
-  float: center;
+  /*float: center;*/
 }
 .states {
     fill-opacity: .0;
     stroke: black;
-    stroke-width: 1px;
+    stroke-width: .4px;
     stroke-opacity:1;
 }
 .numbers {
@@ -34,4 +34,25 @@ body {
     stroke-width: .1;*/
     font-family: sans-serif;
     font-size: 10px
+}
+.chartTitle {
+  font-family: sans-serif;
+  font-size: 1em;
+}
+.subTitle {
+  font-family: sans-serif;
+  font-size: .75em;
+}
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #999;
+    stroke-width: 1px;
+    shape-rendering: crispEdges;
+}
+
+.axis text {
+    font-family: sans-serif;
+    font-size: 0.8em;
+    fill: #999;
 }
