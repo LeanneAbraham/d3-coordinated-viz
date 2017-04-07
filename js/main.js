@@ -1,14 +1,15 @@
 //First line of main.js...wrap everything in a self-executing anonymous function to move to local scope
 (function all (){
   //pseudo-global variables
-  var attr2015 = ["2015_DO", "2015_TCOLI_M", "2015_TN", "2015_TP", "2015_TSS"]; //list of attributes
+  var attr2012 = ["2012_DO", "2012_TCOLI_M", "2012_TN", "2012_TP", "2012_TSS"]; //list of attributes
 
-  var expressed = attr2015[0]; //initial attribute
+  var expressed = attr2012[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
   var width = window.innerWidth/2,
-      height = 500;
+  height = 500;
   window.onload = setMap();
+
   //set up choropleth map
   function setMap(){
     //map frame dimensions
@@ -21,7 +22,6 @@
     .attr("height", height);
 
     //create Albers equal area conic projection centered on Chesapeake Bay
-    //this still needs somme tweaking
     var projection = d3.geoAlbers()
     .center([0, 40])
     .rotate([76.1, 0, 0])
@@ -38,22 +38,66 @@
     .defer(d3.json, "data/Watershed.topojson") //load choropleth spatial data
     .defer(d3.json, "data/States.topojson") //load choropleth spatial data
     .await(callback);
-    function callback(error, waterQuality, watershed,states){
+
+    function callback(error, waterQuality, watershed, states){
 
       //translate watershed and states TopoJSON back to GeoJSON
       var waterPoly = topojson.feature(watershed,  watershed.objects.Watershed).features;
       var states = topojson.feature(states,  states.objects.States).features;
 
+      //add the title and dropdowns to the page
+      //create chart title in div
+      var title = d3.select("#title").append('table')
+      .style("width", window.innerWidth + "px")
+      .append('tr')
+      .append('td')
+      .append('h3')
+      .text(function(){
+        var a  = expressed.split("_")
+        return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
+      })
+
+      var subtitle = d3.select("td")
+      .append("p")
+      .text("*in mg/l");
+
+      //create a dropdown menu for attribute selection
+      //add select element
+      var dropdown = d3.select("tr")
+      .append("td")
+      .append("select")
+      .attr("class", "dropdown")
+      .on("change", function(){
+        changeAttribute(this.value, waterPoly)
+      });
+
+      //add initial option
+      var titleOption = dropdown.append("option")
+      .attr("class", "titleOption")
+      .attr("disabled", "true")
+      .text("Select Pollutant");
+
+      //add attribute name options
+      var attrOptions = dropdown.selectAll("attrOptions")
+      .data(attr2012)
+      .enter()
+      .append("option")
+      .attr("value", function(a){return a;})
+      .text(function(d){
+        //split the pollutatnt name to return name without year
+        var a  = d.split("_")
+        return a[1];
+      });
+
       //call Data Join loop
       joinData(waterPoly, waterQuality);
-      //create the color scale
-      var colorScale = makeColorScale (waterQuality);
+      //create the color
+
+      var colorScale = makeColorScale (waterPoly, expressed);
       //call adding polygons to map
       layers (waterPoly, map, path, colorScale, states);
       //add the coordinated viz to the page
       setChart (waterPoly, colorScale);
-      //add the title and dropdowns to the page
-      createHeader (waterPoly);
     };
   };
   //end of Set Map
@@ -63,8 +107,8 @@
     //add watersheds to map
     //waterPoly are the watershed polygons
     var watershedBounds = map.append('g')
-
     .attr('class', 'watershed');
+
     //adding color scheme etc to watershedpolys
     watershedBounds.selectAll(".watershedBounds")
     .append('g')
@@ -76,7 +120,7 @@
     })
     .attr("d", path)
     .style("fill", function(d){
-      return colorScale(d.properties[expressed]);
+      return choropleth(d.properties[expressed], colorScale);
     });
     //styling neutral values in the CSS
 
@@ -92,16 +136,19 @@
     .attr("d", path);
   };
   //function to test for data value and return color
-function choropleth(waterPoly, waterQuality){
+  //pulled directly from module
+  function choropleth(waterPoly, colorScale){
     //make sure attribute value is a number
-    var val = parseFloat(data[expressed]);
+    // var val = parseFloat(waterPoly[expressed]);
+    var val = parseFloat(waterPoly)
     //if attribute value exists, assign a color; otherwise assign gray
-    if (typeof val == 'number' && !isNaN(val)){
-        return colorScale(val);
+    if  (!isNaN(val)){
+      color =  colorScale(val);
+           return color;
     } else {
-        return "#CCC";
+      return "blue";
     };
-};
+  };
 
   //joins the csv data to the polygons
   function joinData (waterPoly, waterQuality){
@@ -133,9 +180,8 @@ function choropleth(waterPoly, waterQuality){
   }
 
   //function to create color scale generator
-  function makeColorScale(data){
+  function makeColorScale(data, expressed){
     var colorClasses = ["#feedde","#fdd0a2","#fdae6b","#fd8d3c","#e6550d","#a63603"]
-
     //create color scale generator
     var colorScale = d3.scaleQuantile()
     .range(colorClasses);
@@ -143,12 +189,13 @@ function choropleth(waterPoly, waterQuality){
     //build array of all values of the expressed attribute
     var domainArray = [];
     for (var i=0; i<data.length; i++){
-        var val = parseFloat(data[i][expressed]);
-        domainArray.push(val);
+      var val = parseFloat(data[i].properties[expressed]);
+      domainArray.push(val);
     };
 
     //assign array of expressed values as scale domain
     colorScale.domain(domainArray);
+
     return colorScale;
   };
 
@@ -167,52 +214,52 @@ function choropleth(waterPoly, waterQuality){
     }
     //chart frame dimensions
     var chartWidth = width,
-        chartHeight = height,
-        leftPadding = 10,
-        rightPadding = 10,
-        topBottomPadding = 5,
-        chartInnerWidth = chartWidth - leftPadding - rightPadding,
-        chartInnerHeight = chartHeight - topBottomPadding * 2
-        translate = "translate(0," + (chartHeight - (chartHeight * .036)) + ")";
+    chartHeight = height,
+    leftPadding = 10,
+    rightPadding = 10,
+    topBottomPadding = 5,
+    chartInnerWidth = chartWidth - leftPadding - rightPadding,
+    chartInnerHeight = chartHeight - topBottomPadding * 2
+    translate = "translate(0," + (chartHeight - (chartHeight * .036)) + ")";
 
     //create a second svg element to hold the bar chart
     var chart = d3.select("body")
-      .append("svg")
-      .attr("width", chartWidth)
-      .attr("height", chartHeight)
-      .attr("class", "chart");
+    .append("svg")
+    .attr("width", chartWidth)
+    .attr("height", chartHeight)
+    .attr("class", "chart");
 
     //create a scale to size bars proportionally to frame
     var yScale = d3.scaleLinear()
-      .range([0, chartWidth])
-      .domain([5.5, 12]);
+    .range([0, chartWidth])
+    .domain([5.5, 12]);
 
     //create group for the bars
     var barContainer = chart.append('g');
 
     //set bars for each watershed
     var bars = barContainer.selectAll(".bars")
-      .data(waterPoly)
-      .enter();
-      //create the bars themselves, add class that joins bars to watersheds
-      bars.append("rect")
-        .attr("class",  function (d){
-          return "bars " + d.properties.HUC8;
-        })
-        .sort(function(a, b){
-          return a.chartValue - b.chartValue;
-        })
-        .attr("height", chartHeight / waterPoly.length - 1.5)
-        .attr("width", function(d){
-          return yScale(d.chartValue);
-        })
-        .attr("y", function(d, i){
-          return i * ((chartHeight - 20) / waterPoly.length);
-        })
-        .attr("x", "0")
-        .style("fill", function(d){
-          return colorScale(d.chartValue);
-        });
+    .data(waterPoly)
+    .enter();
+    //create the bars themselves, add class that joins bars to watersheds
+    bars.append("rect")
+    .attr("class",  function (d){
+      return "bars " + d.properties.HUC8;
+    })
+    .sort(function(a, b){
+      return a.chartValue - b.chartValue;
+    })
+    .attr("height", chartHeight / waterPoly.length - 1.5)
+    .attr("width", function(d){
+      return yScale(d.chartValue);
+    })
+    .attr("y", function(d, i){
+      return i * ((chartHeight - 20) / waterPoly.length);
+    })
+    .attr("x", "0")
+    .style("fill", function(d){
+      return colorScale(d.chartValue);
+    });
     //annotate bars with attribute value text
     // bars.append("g")
     // .append("text")
@@ -233,80 +280,27 @@ function choropleth(waterPoly, waterQuality){
     // });
     //create horizonatal axis generator
     var xAxis = d3.axisBottom()
-        .tickValues([6, 7, 8, 9, 10, 11])
-        .scale(yScale);
+    .tickValues([6, 7, 8, 9, 10, 11])
+    .scale(yScale);
 
     //place axis
     var axis = chart.append("g")
-        .attr("class", "axis")
-        .attr("transform", translate)
-        .call(xAxis);
-      };
-  //puts the dropdowns and titles in a header above the chart
-  function createHeader (waterPoly){
-    //create chart title in div
-    d3.select("#title").append('table')
-    .style("width", window.innerWidth + "px")
-    .append('tr')
-    .append('td')
-    .append('h3')
-    .text(function(){
-      var a  = expressed.split("_")
-      return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
-    })
-    d3.select("td")
-    .append("p")
-    .text("*in mg/l");
-
-    //call dropdowns because they will appear in the header
-    createDropdown (waterPoly);
+    .attr("class", "axis")
+    .attr("transform", translate)
+    .call(xAxis);
   };
-  //function to create a dropdown menu for attribute selection
-  function createDropdown(waterPoly){
-    //change attribute is called when the dropdown is altered
-
-    //add select element
-    var dropdown = d3.select("tr")
-      .append("td")
-      .append("select")
-      .attr("class", "dropdown")
-      .on("change", function(){
-          changeAttribute(this.value, waterPoly)
-        });
-
-    //add initial option
-    var titleOption = dropdown.append("option")
-      .attr("class", "titleOption")
-      .attr("disabled", "true")
-      .text("Select Pollutant");
-
-    //add attribute name options
-    var attrOptions = dropdown.selectAll("attrOptions")
-      .data(attr2015)
-      .enter()
-      .append("option")
-      .attr("value", function(a){return a;})
-      .text(function(d){
-        //split the pollutatnt name to return name without year
-        var a  = d.split("_")
-        return a[1];
-      });
-  };
-
   //dropdown change listener handler
   function changeAttribute(attribute, waterPoly){
-      //change the expressed attribute
-      expressed = attribute;
+    //change the expressed attribute
+    expressed = attribute;
 
-      //recreate the color scale
-      var colorScale = makeColorScale(waterPoly);
+    //recreate the color scale
+    var colorScale = makeColorScale(waterPoly, expressed);
 
-      //recolor enumeration units
-      var regions = d3.selectAll(".watershedBounds")
-          //
-          // .style("fill", function(d){
-          //   console.log(d.properties[expressed])
-          //     return colorScale(d.properties[expressed])
-          // });
+    //recolor enumeration units
+    var regions = d3.selectAll(".watershedBounds")
+    .style("fill", function(d){
+      return choropleth(d.properties[expressed], colorScale)
+    });
   };
 })(); //last line of main.js
