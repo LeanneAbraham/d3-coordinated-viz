@@ -6,9 +6,8 @@
   var expressed = attr2012[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
-  var a  = expressed.split("_")
   var width = window.innerWidth/2,
-  height = 500;
+  height = 400;
 
   //chart frame dimensions
   var chartWidth = width,
@@ -89,6 +88,7 @@
       .append('h3')
       .attr("id","mainTitle")
       .text(function(){
+        var a  = expressed.split("_")
         return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
       })
 
@@ -120,8 +120,8 @@
       .attr("value", function(a){return a;})
       .text(function(d){
         //split the pollutatnt name to return name without year
-        var a  = d.split("_")
-        return a[1];
+        var b  = d.split("_")
+        return b[1];
       });
 
       //call Data Join loop
@@ -190,13 +190,17 @@
     .enter()
     .append("path")
     .attr("class", function (d){
-      return "watershedBounds " + d.properties.HUC8;
+      return "watershedBounds a" + d.properties.HUC8;
     })
     .attr("d", path)
     .style("fill", function(d){
       return choropleth(d.properties[expressed], colorScale);
     })
-    .on("mouseover", highlight);
+    .on("mouseover", highlight)
+    .on("mouseout", function(d){
+            unHighlight(d.properties);
+        })
+    .on("mousemove", moveLabel);
     // function(d){
     //         highlight(d.properties.HUC8);
       //  });
@@ -271,7 +275,7 @@
     //create the bars themselves, add class that joins bars to watersheds
     bars.append("rect")
     .attr("class",  function (d){
-      return "bars " + d.properties.HUC8;
+      return "bar a" + d.properties.HUC8;
     })
     .sort(function(a, b){
       return a.chartValue - b.chartValue;
@@ -287,26 +291,9 @@
     .style("fill", function(d){
       return colorScale(d.chartValue);
     })
-    // .on("mouseover", highlight);
-    //annotate bars with attribute value text
-    // bars.append("g")
-    // .append("text")
-    // .sort(function(b,a){
-    //   return b.chartValue - a.chartValue;
-    // })
-    // .attr("class", "numbers")
-    // // .attr("text-anchor", "middle")
-    // .attr("x", function(d){
-    //   return (yScale(d.chartValue)+5);
-    // })
-    // .attr("y", function(d, i){
-    //   return i * ((chartHeight - 20) / waterPoly.length)+7;
-    // })
-    // .text(function(d){
-    //   var format = d3.format(",.2f")
-    //   return format(d.chartValue);
-    // });
-    //create horizonatal axis generator
+    .on("mouseover", highlight)
+    .on("mouseout", unHighlight)
+    .on("mousemove", moveLabel);
   };
 
   //dropdown change listener handler
@@ -358,23 +345,42 @@
     .transition()
     .duration(500)
     .text(function(){
+      var a  = expressed.split("_")
       return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
     })
   };
   //function to highlight enumeration units and bars
   function highlight(waterPoly){
-    setLabel(waterPoly);
     //change stroke
-    // var selected = d3.selectAll("." + waterPoly.properties.HUC8)
-    // .style("stroke", "blue")
-    // .style("stroke-width", "2");
+    var selected = d3.selectAll(".a" + waterPoly.properties.HUC8)
+    .style('fill', 'tomato')
+    //.style("stroke","black")
+    .style ("stroke-width","1");
   };
+
+  //function to remove highlighting on mouseout
+  function unHighlight(waterPoly) {
+    var selected = d3.select(".a" + waterPoly.properties.HUC8)
+      .style('fill', function(){
+            return getStyle(this, "fill");
+          });
+
+      function getStyle(element, styleName){
+        var styleText = d3.select(element)
+            .select("desc")
+            .text();
+        var styleObject = JSON.parse(styleText);
+
+        return styleObject[styleName];
+  };
+};
   //function to create dynamic label
   function setLabel(waterPoly){
     //label content
-    var format = d3.format(",.3f")
+    var format = d3.format(",.2f")
+    var a  = expressed.split("_")
     var labelAttribute = "<h1>" + format(waterPoly.properties[expressed]) +
-    "</h1> mg/l of <b>" + a[1] + "</b>";
+    "</h1><b> mg/l of " + a[1] + "</b>";
 
     //create info label div
     var infolabel = d3.select("body")
@@ -388,10 +394,11 @@
     .html(waterPoly.properties.NAME);
   };
   //function to move info label with mouse
-function moveLabel(){
+function moveLabel(waterPoly){
+    setLabel(waterPoly);
     //use coordinates of mousemove event to set label coordinates
-    var x = d3.event.clientX + 10,
-        y = d3.event.clientY - 75;
+    var x = d3.event.clientX + 5,
+        y = d3.event.clientY - 5;
 
     d3.select(".infolabel")
         .style("left", x + "px")
