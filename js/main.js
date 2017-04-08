@@ -6,6 +6,7 @@
   var expressed = attr2012[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
+  var a  = expressed.split("_")
   var width = window.innerWidth/2,
   height = 500;
 
@@ -88,7 +89,6 @@
       .append('h3')
       .attr("id","mainTitle")
       .text(function(){
-        var a  = expressed.split("_")
         return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
       })
 
@@ -168,6 +168,16 @@
 
   //adds the json layers
   function layers (waterPoly, map, path, colorScale, states){
+    //starting to code for adding state layer for context
+    var stateBounds = map.append('g')
+    .attr("class", "states");
+
+    stateBounds.selectAll(".stateBounds")
+    .data(states)
+    .enter()
+    .append("path")
+    .attr("class", "states")
+    .attr("d", path);
     //add watersheds to map
     //waterPoly are the watershed polygons
     var watershedBounds = map.append('g')
@@ -185,32 +195,23 @@
     .attr("d", path)
     .style("fill", function(d){
       return choropleth(d.properties[expressed], colorScale);
-    });
-    //styling neutral values in the CSS
-
-    //starting to code for adding state layer for context
-    var stateBounds = map.append('g')
-    .attr("class", "states");
-
-    stateBounds.selectAll(".stateBounds")
-    .data(states)
-    .enter()
-    .append("path")
-    .attr("class", "states")
-    .attr("d", path);
+    })
+    .on("mouseover", highlight);
+    // function(d){
+    //         highlight(d.properties.HUC8);
+      //  });
   };
   //function to test for data value and return color
   //pulled directly from module
   function choropleth(waterPoly, colorScale){
     //make sure attribute value is a number
-    // var val = parseFloat(waterPoly[expressed]);
     var val = parseFloat(waterPoly)
     //if attribute value exists, assign a color; otherwise assign gray
     if  (!isNaN(val)){
       color =  colorScale(val);
       return color;
     } else {
-      return "blue";
+      return "#e0eeee";
     };
   };
 
@@ -285,7 +286,8 @@
     .attr("x", "0")
     .style("fill", function(d){
       return colorScale(d.chartValue);
-    });
+    })
+    // .on("mouseover", highlight);
     //annotate bars with attribute value text
     // bars.append("g")
     // .append("text")
@@ -356,8 +358,43 @@
     .transition()
     .duration(500)
     .text(function(){
-      var a  = expressed.split("_")
       return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
     })
   };
+  //function to highlight enumeration units and bars
+  function highlight(waterPoly){
+    setLabel(waterPoly);
+    //change stroke
+    // var selected = d3.selectAll("." + waterPoly.properties.HUC8)
+    // .style("stroke", "blue")
+    // .style("stroke-width", "2");
+  };
+  //function to create dynamic label
+  function setLabel(waterPoly){
+    //label content
+    var format = d3.format(",.3f")
+    var labelAttribute = "<h1>" + format(waterPoly.properties[expressed]) +
+    "</h1> mg/l of <b>" + a[1] + "</b>";
+
+    //create info label div
+    var infolabel = d3.select("body")
+    .append("div")
+    .attr("class", "infolabel")
+    .attr("id", waterPoly.properties.HUC8 + "_label")
+    .html(labelAttribute);
+
+    var regionName = infolabel.append("div")
+    .attr("class", "labelname")
+    .html(waterPoly.properties.NAME);
+  };
+  //function to move info label with mouse
+function moveLabel(){
+    //use coordinates of mousemove event to set label coordinates
+    var x = d3.event.clientX + 10,
+        y = d3.event.clientY - 75;
+
+    d3.select(".infolabel")
+        .style("left", x + "px")
+        .style("top", y + "px");
+};
 })(); //last line of main.js

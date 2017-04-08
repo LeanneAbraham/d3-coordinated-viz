@@ -9,8 +9,7 @@ body {
   float: right;
 }
 .watershedBounds {
-    /*fill-opacity:.7;*/
-    fill: #e0eeee;
+    fill-opacity:.9;
     stroke: white;
     stroke-width: .5px;
 }
@@ -72,4 +71,20 @@ h3 {
 
 option {
     font-weight: normal;
+}
+.infolabel {
+    position: absolute;
+    height: 50px;
+    min-width: 100px;
+    color: #fff;
+    background-color: #000;
+    border: solid thin #fff;
+    padding: 5px 10px;
+}
+
+.infolabel h1 {
+    margin: 0 0px 0 0;
+    padding: 0;
+    display: inline-block;
+    line-height: 1em;
 }
