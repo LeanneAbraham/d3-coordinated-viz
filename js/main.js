@@ -40,6 +40,9 @@
   .attr("transform", translate)
   .call(xAxis);
 
+  //create the tilte
+  var title = d3.select("#title").append('table')
+
   window.onload = setMap();
 
   //set up choropleth map
@@ -79,11 +82,11 @@
 
       //add the title and dropdowns to the page
       //create chart title in div
-      var title = d3.select("#title").append('table')
-      .style("width", window.innerWidth + "px")
+      title.style("width", window.innerWidth + "px")
       .append('tr')
       .append('td')
       .append('h3')
+      .attr("id","mainTitle")
       .text(function(){
         var a  = expressed.split("_")
         return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
@@ -213,7 +216,8 @@
 
   //function to create color scale generator
   function makeColorScale(data, expressed){
-    var colorClasses = ["#feedde","#fdd0a2","#fdae6b","#fd8d3c","#e6550d","#a63603"]
+    var colorClasses = ["#543005","#8c510a","#bf812d","#dfc27d","#f6e8c3"]
+    colorClasses.reverse();
     //create color scale generator
     var colorScale = d3.scaleQuantile()
     .range(colorClasses);
@@ -314,6 +318,8 @@
 
     //recolor enumeration units
     var regions = d3.selectAll(".watershedBounds")
+    .transition()
+    .duration(500)
     .style("fill", function(d){
       return choropleth(d.properties[expressed], colorScale)
     });
@@ -323,29 +329,35 @@
     //create a scale to size bars proportionally to frame
     yScale.domain(d3.extent(values));
 
-  //update axis
-  xAxis.scale(yScale);
+    //update axis
+    xAxis.scale(yScale);
 
-  //place axis
-  axis.call(xAxis);
+    //place axis
+    axis.call(xAxis);
 
     //updating the bars
     d3.selectAll('.bars')
-    .attr("width", function(d){
-      return yScale(d.chartValue);
-    })
     .sort(function(a, b){
       return a.chartValue - b.chartValue;
     })
+    //I think the resorting bar annimation is kinda cheesy
     .attr("width", function(d){
       return yScale(d.chartValue);
     })
     .attr("y", function(d, i){
       return i * ((chartHeight - 20) / waterPoly.length);
     })
-    .attr("x", "0")
     .style("fill", function(d){
       return colorScale(d.chartValue);
     });
+
+    //update the title
+    d3.select("#mainTitle")
+    .transition()
+    .duration(500)
+    .text(function(){
+      var a  = expressed.split("_")
+      return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
+    })
   };
 })(); //last line of main.js
