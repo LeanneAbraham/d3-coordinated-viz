@@ -1,23 +1,23 @@
 //First line of main.js...wrap everything in a self-executing anonymous function to move to local scope
 (function all (){
   //pseudo-global variables
-  var attr2015 = ["2015_DO", "2015_TCOLI_M", "2015_TN", "2015_TP", "2015_TSS"]; //list of attributes
+  var attr2012 = ["2012_DO", "2012_TCOLI_M", "2012_TN", "2012_TP", "2012_TSS"]; //list of attributes
 
-  var expressed = attr2015[0]; //initial attribute
+  var expressed = attr2012[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
   var width = window.innerWidth/2,
-      height = 500;
+  height = 500;
 
   //chart frame dimensions
   var chartWidth = width,
-      chartHeight = height,
-      leftPadding = 10,
-      rightPadding = 10,
-      topBottomPadding = 5,
-      chartInnerWidth = chartWidth - leftPadding - rightPadding,
-      chartInnerHeight = chartHeight - topBottomPadding * 2
-      translate = "translate(0," + (chartHeight - (chartHeight * .036)) + ")";
+  chartHeight = height,
+  leftPadding = 10,
+  rightPadding = 10,
+  topBottomPadding = 5,
+  chartInnerWidth = chartWidth - leftPadding - rightPadding,
+  chartInnerHeight = chartHeight - topBottomPadding * 2
+  translate = "translate(0," + (chartHeight - (chartHeight * .036)) + ")";
 
   //create a second svg element to hold the bar chart
   var chart = d3.select("body")
@@ -29,6 +29,16 @@
   //create a scale to size bars proportionally to frame
   var yScale = d3.scaleLinear()
   .range([0, chartWidth])
+
+  //create axis
+  var xAxis = d3.axisBottom()
+  .scale(yScale);
+
+  //place axis
+  var axis = chart.append("g")
+  .attr("class", "axis")
+  .attr("transform", translate)
+  .call(xAxis);
 
   window.onload = setMap();
 
@@ -101,7 +111,7 @@
 
       //add attribute name options
       var attrOptions = dropdown.selectAll("attrOptions")
-      .data(attr2015)
+      .data(attr2012)
       .enter()
       .append("option")
       .attr("value", function(a){return a;})
@@ -291,14 +301,6 @@
     //   return format(d.chartValue);
     // });
     //create horizonatal axis generator
-    var xAxis = d3.axisBottom()
-    .scale(yScale);
-
-    //place axis
-    var axis = chart.append("g")
-    .attr("class", "axis")
-    .attr("transform", translate)
-    .call(xAxis);
   };
 
   //dropdown change listener handler
@@ -308,6 +310,7 @@
 
     //recreate the color scale
     var colorScale = makeColorScale(waterPoly, expressed);
+    cleanData (waterPoly, expressed);
 
     //recolor enumeration units
     var regions = d3.selectAll(".watershedBounds")
@@ -315,21 +318,25 @@
       return choropleth(d.properties[expressed], colorScale)
     });
 
-    cleanData (waterPoly, expressed);
-    //create group for the bars
-    var barContainer = chart.append('g');
+    //set the range and domain for the bars
+    var values = waterPoly.map(function (x) { return x.chartValue; });
+    //create a scale to size bars proportionally to frame
+    yScale.domain(d3.extent(values));
 
-    var bars = barContainer.selectAll(".bars")
+  //update axis
+  xAxis.scale(yScale);
 
-    //create the bars themselves, add class that joins bars to watersheds
-    bars.append("rect")
-    .attr("class",  function (d){
-      return "bars " + d.properties.HUC8;
+  //place axis
+  axis.call(xAxis);
+
+    //updating the bars
+    d3.selectAll('.bars')
+    .attr("width", function(d){
+      return yScale(d.chartValue);
     })
     .sort(function(a, b){
       return a.chartValue - b.chartValue;
     })
-    .attr("height", chartHeight / waterPoly.length - 1.5)
     .attr("width", function(d){
       return yScale(d.chartValue);
     })
