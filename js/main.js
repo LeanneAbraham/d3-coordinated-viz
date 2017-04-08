@@ -1,13 +1,35 @@
 //First line of main.js...wrap everything in a self-executing anonymous function to move to local scope
 (function all (){
   //pseudo-global variables
-  var attr2012 = ["2012_DO", "2012_TCOLI_M", "2012_TN", "2012_TP", "2012_TSS"]; //list of attributes
+  var attr2015 = ["2015_DO", "2015_TCOLI_M", "2015_TN", "2015_TP", "2015_TSS"]; //list of attributes
 
-  var expressed = attr2012[0]; //initial attribute
+  var expressed = attr2015[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
   var width = window.innerWidth/2,
-  height = 500;
+      height = 500;
+
+  //chart frame dimensions
+  var chartWidth = width,
+      chartHeight = height,
+      leftPadding = 10,
+      rightPadding = 10,
+      topBottomPadding = 5,
+      chartInnerWidth = chartWidth - leftPadding - rightPadding,
+      chartInnerHeight = chartHeight - topBottomPadding * 2
+      translate = "translate(0," + (chartHeight - (chartHeight * .036)) + ")";
+
+  //create a second svg element to hold the bar chart
+  var chart = d3.select("body")
+  .append("svg")
+  .attr("width", chartWidth)
+  .attr("height", chartHeight)
+  .attr("class", "chart");
+
+  //create a scale to size bars proportionally to frame
+  var yScale = d3.scaleLinear()
+  .range([0, chartWidth])
+
   window.onload = setMap();
 
   //set up choropleth map
@@ -79,7 +101,7 @@
 
       //add attribute name options
       var attrOptions = dropdown.selectAll("attrOptions")
-      .data(attr2012)
+      .data(attr2015)
       .enter()
       .append("option")
       .attr("value", function(a){return a;})
@@ -101,6 +123,35 @@
     };
   };
   //end of Set Map
+
+  //joins the csv data to the polygons
+  function joinData (waterPoly, waterQuality){
+    // loop over every item of the geojson
+    for (var i = 0; i < waterPoly.length; i++) {
+      // create a variable to hold the current
+      // geojson property in the loop
+      var feature = waterPoly[i];
+      // save the join id
+      var huc = feature.properties.HUC8;
+      // for each item inn the geojson,
+      // loop over every item in the csv data
+      for (var k = 0; k < waterQuality.length; k++) {
+        var waterData = waterQuality[k];
+        // check if the csv item has the same
+        // join key as the geojson item
+        if (huc === waterData.HUC8) {
+          // when the two have the same join key,
+          // attach all the properties from the csv
+          // to the geojson
+          for (var key in waterData) {
+            //assign the water parameter variables to polygon and turn them into numbers
+            feature.properties[key] = parseFloat(waterData[key]);
+          }
+        }
+      }
+    }
+    return waterPoly;
+  }
 
   //adds the json layers
   function layers (waterPoly, map, path, colorScale, states){
@@ -144,40 +195,11 @@
     //if attribute value exists, assign a color; otherwise assign gray
     if  (!isNaN(val)){
       color =  colorScale(val);
-           return color;
+      return color;
     } else {
       return "blue";
     };
   };
-
-  //joins the csv data to the polygons
-  function joinData (waterPoly, waterQuality){
-    // loop over every item of the geojson
-    for (var i = 0; i < waterPoly.length; i++) {
-      // create a variable to hold the current
-      // geojson property in the loop
-      var feature = waterPoly[i];
-      // save the join id
-      var huc = feature.properties.HUC8;
-      // for each item inn the geojson,
-      // loop over every item in the csv data
-      for (var k = 0; k < waterQuality.length; k++) {
-        var waterData = waterQuality[k];
-        // check if the csv item has the same
-        // join key as the geojson item
-        if (huc === waterData.HUC8) {
-          // when the two have the same join key,
-          // attach all the properties from the csv
-          // to the geojson
-          for (var key in waterData) {
-            //assign the water parameter variables to polygon and turn them into numbers
-            feature.properties[key] = parseFloat(waterData[key]);
-          }
-        }
-      }
-    }
-    return waterPoly;
-  }
 
   //function to create color scale generator
   function makeColorScale(data, expressed){
@@ -199,8 +221,8 @@
     return colorScale;
   };
 
-  //function to create coordinated bar chart
-  function setChart(waterPoly, colorScale){
+  //clean the data
+  function cleanData (waterPoly, expressed){
     //loops over waterPoly attaches a new property to each feature that contains the number I want to use in the chart
     for (var i = 0; i < waterPoly.length; i++){
       //cleaning the data
@@ -212,27 +234,17 @@
       //attaches object back to the waterPoly
       waterPoly[i].chartValue = value;
     }
-    //chart frame dimensions
-    var chartWidth = width,
-    chartHeight = height,
-    leftPadding = 10,
-    rightPadding = 10,
-    topBottomPadding = 5,
-    chartInnerWidth = chartWidth - leftPadding - rightPadding,
-    chartInnerHeight = chartHeight - topBottomPadding * 2
-    translate = "translate(0," + (chartHeight - (chartHeight * .036)) + ")";
+  };
 
-    //create a second svg element to hold the bar chart
-    var chart = d3.select("body")
-    .append("svg")
-    .attr("width", chartWidth)
-    .attr("height", chartHeight)
-    .attr("class", "chart");
+  //function to create coordinated bar chart
+  function setChart(waterPoly, colorScale){
 
+    cleanData (waterPoly, expressed);
+
+    //set the range and domain for the bars
+    var values = waterPoly.map(function (x) { return x.chartValue; });
     //create a scale to size bars proportionally to frame
-    var yScale = d3.scaleLinear()
-    .range([0, chartWidth])
-    .domain([5.5, 12]);
+    yScale.domain(d3.extent(values));
 
     //create group for the bars
     var barContainer = chart.append('g');
@@ -280,7 +292,6 @@
     // });
     //create horizonatal axis generator
     var xAxis = d3.axisBottom()
-    .tickValues([6, 7, 8, 9, 10, 11])
     .scale(yScale);
 
     //place axis
@@ -289,6 +300,7 @@
     .attr("transform", translate)
     .call(xAxis);
   };
+
   //dropdown change listener handler
   function changeAttribute(attribute, waterPoly){
     //change the expressed attribute
@@ -301,6 +313,32 @@
     var regions = d3.selectAll(".watershedBounds")
     .style("fill", function(d){
       return choropleth(d.properties[expressed], colorScale)
+    });
+
+    cleanData (waterPoly, expressed);
+    //create group for the bars
+    var barContainer = chart.append('g');
+
+    var bars = barContainer.selectAll(".bars")
+
+    //create the bars themselves, add class that joins bars to watersheds
+    bars.append("rect")
+    .attr("class",  function (d){
+      return "bars " + d.properties.HUC8;
+    })
+    .sort(function(a, b){
+      return a.chartValue - b.chartValue;
+    })
+    .attr("height", chartHeight / waterPoly.length - 1.5)
+    .attr("width", function(d){
+      return yScale(d.chartValue);
+    })
+    .attr("y", function(d, i){
+      return i * ((chartHeight - 20) / waterPoly.length);
+    })
+    .attr("x", "0")
+    .style("fill", function(d){
+      return colorScale(d.chartValue);
     });
   };
 })(); //last line of main.js
