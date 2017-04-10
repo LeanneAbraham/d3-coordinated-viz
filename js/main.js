@@ -1,5 +1,18 @@
 //First line of main.js...wrap everything in a self-executing anonymous function to move to local scope
 (function all (){
+
+  //create a dropdown for the year
+  var yearDropDown = d3.select("#yearChange")
+  .append("select")
+  .attr("class", "dropdown")
+  .append("option")
+  .attr("class", "titleOption")
+  .attr("disabled", "true")
+  .text("Year");
+  // .on("change", function(){
+  //   changeAttribute(this.value, waterPoly)
+  // });
+
   //pseudo-global variables
   var attr2015 = ["2015_DO", "2015_TCOLI_M", "2015_TN", "2015_TP", "2015_TSS"]; //list of attributes
 
@@ -7,7 +20,7 @@
   //begin script when window loads
   //frame dimensions
   var width = window.innerWidth/2,
-  height = 400;
+  height = 500;
 
   //chart frame dimensions
   var chartWidth = width,
@@ -42,6 +55,10 @@
 
   //create the tilte
   var title = d3.select("#title").append('table')
+    .style("width", window.innerWidth + "px")
+
+  //make this global so deHighlight
+  var colorScale
 
   window.onload = setMap();
 
@@ -82,9 +99,7 @@
 
       //add the title and dropdowns to the page
       //create chart title in div
-      title.style("width", window.innerWidth + "px")
-      .append('tr')
-      .append('td')
+      var header = d3.select('#header')
       .append('h3')
       .attr("id","mainTitle")
       .text(function(){
@@ -94,8 +109,7 @@
 
       //create a dropdown menu for attribute selection
       //add select element
-      var dropdown = d3.select("tr")
-      .append("td")
+      var dropdown = d3.select("#Pollutant")
       .append("select")
       .attr("class", "dropdown")
       .on("change", function(){
@@ -124,7 +138,7 @@
       joinData(waterPoly, waterQuality);
       //create the color
 
-      var colorScale = makeColorScale (waterPoly, expressed);
+      colorScale = makeColorScale (waterPoly, expressed);
       //call adding polygons to map
       layers (waterPoly, map, path, colorScale, states);
       //add the coordinated viz to the page
@@ -193,7 +207,7 @@
       return choropleth(d.properties[expressed], colorScale);
     })
     .on("mouseover", highlight)
-    .on("mouseout", function (d) { unHighlight(d, colorScale); })    .on("mousemove", moveLabel);
+    .on("mouseout", function (d) { deHighlight(d, colorScale); })    .on("mousemove", moveLabel);
     // function(d){
     //         highlight(d.properties.HUC8);
     //  });
@@ -217,7 +231,7 @@
     var colorClasses = ["#543005","#8c510a","#bf812d","#dfc27d","#f6e8c3"]
     colorClasses.reverse();
     //create color scale generator
-    var colorScale = d3.scaleQuantile()
+    colorScale = d3.scaleQuantile()
     .range(colorClasses);
 
     //build array of all values of the expressed attribute
@@ -255,6 +269,7 @@
     //set the range and domain for the bars
     var values = waterPoly.map(function (x) { return x.chartValue; });
     //create a scale to size bars proportionally to frame
+    console.log(d3.extent(values));
     yScale.domain(d3.extent(values));
 
     //create group for the bars
@@ -284,7 +299,7 @@
       return colorScale(d.chartValue);
     })
     .on("mouseover", highlight)
-    .on("mouseout", function (d) { unHighlight(d, colorScale); })
+    .on("mouseout", function (d) { deHighlight(d, colorScale); })
     .on("mousemove", moveLabel);
   };
 
@@ -294,7 +309,7 @@
     expressed = attribute;
 
     //recreate the color scale
-    var colorScale = makeColorScale(waterPoly, expressed);
+    colorScale = makeColorScale(waterPoly, expressed);
     cleanData (waterPoly, expressed);
 
     //recolor enumeration units
@@ -321,6 +336,8 @@
     .sort(function(a, b){
       return a.chartValue - b.chartValue;
     })
+    .transition()
+    .duration(200)
     //I think the resorting bar annimation is kinda cheesy
     .attr("width", function(d){
       return yScale(d.chartValue);
@@ -339,6 +356,7 @@
     .text(function(){
       var a  = expressed.split("_")
       return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
+      //else (a[1] = "TSS") {return "Total Suspended Solids"}
     })
   };
   //function to highlight enumeration units and bars
@@ -347,16 +365,14 @@
     //change stroke
     var selected = d3.selectAll(".a" + waterPoly.properties.HUC8)
     .style('fill', 'tomato')
-    //.style("stroke","black")
-    .style ("stroke-width","1");
   };
 
   //function to remove highlighting on mouseout
-  function unHighlight(waterPoly, colorScale) {
+  function deHighlight(waterPoly, colorScale) {
     var selected = d3.selectAll(".a" + waterPoly.properties.HUC8)
     .style("fill", function(d){
       //PROBLEM
-      return colorScale(d.chartValue)
+      return colorScale(d.properties[expressed])
     });
 
     d3.select(".infolabel")
@@ -383,12 +399,25 @@
   };
   //function to move info label with mouse
   function moveLabel(waterPoly){
+    //get width of label
+    var labelWidth = d3.select(".infolabel")
+        .node()
+        .getBoundingClientRect()
+        .width;
+
     //use coordinates of mousemove event to set label coordinates
-    var x = d3.event.clientX + 2,
-    y = d3.event.clientY + 2;
+    var x1 = d3.event.clientX + 12,
+        y1 = d3.event.clientY - 2,
+        x2 = d3.event.clientX - labelWidth - 12,
+        y2 = d3.event.clientY - 2;
+
+    //horizontal label coordinate, testing for overflow
+    var x = d3.event.clientX > window.innerWidth - labelWidth - 30 ? x2 : x1;
+    //vertical label coordinate, testing for overflow
+    var y = d3.event.clientY < 30 ? y2 : y1;
 
     d3.select(".infolabel")
-    .style("left", x + "px")
-    .style("top", y + "px");
+        .style("left", x + "px")
+        .style("top", y + "px");
   };
 })(); //last line of main.js

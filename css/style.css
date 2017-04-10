@@ -34,7 +34,8 @@ body {
   font-family: sans-serif;
   font-size: 10px
 }
-#title {
+#mainTitle {
+  font-size: 1.4em;
 }
 #title h3, p {
   margin: .2em;
