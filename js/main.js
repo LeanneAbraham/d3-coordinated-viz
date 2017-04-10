@@ -1,9 +1,9 @@
 //First line of main.js...wrap everything in a self-executing anonymous function to move to local scope
 (function all (){
   //pseudo-global variables
-  var attr2012 = ["2012_DO", "2012_TCOLI_M", "2012_TN", "2012_TP", "2012_TSS"]; //list of attributes
+  var attr2015 = ["2015_DO", "2015_TCOLI_M", "2015_TN", "2015_TP", "2015_TSS"]; //list of attributes
 
-  var expressed = attr2012[0]; //initial attribute
+  var expressed = attr2015[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
   var width = window.innerWidth/2,
@@ -92,10 +92,6 @@
         return "Average Amount of " + a[1] + " per Subwatershed in " + a[0];
       })
 
-      var subtitle = d3.select("td")
-      .append("p")
-      .text("*in mg/l");
-
       //create a dropdown menu for attribute selection
       //add select element
       var dropdown = d3.select("tr")
@@ -114,7 +110,7 @@
 
       //add attribute name options
       var attrOptions = dropdown.selectAll("attrOptions")
-      .data(attr2012)
+      .data(attr2015)
       .enter()
       .append("option")
       .attr("value", function(a){return a;})
@@ -197,13 +193,10 @@
       return choropleth(d.properties[expressed], colorScale);
     })
     .on("mouseover", highlight)
-    .on("mouseout", function(d){
-            unHighlight(d.properties);
-        })
-    .on("mousemove", moveLabel);
+    .on("mouseout", function (d) { unHighlight(d, colorScale); })    .on("mousemove", moveLabel);
     // function(d){
     //         highlight(d.properties.HUC8);
-      //  });
+    //  });
   };
   //function to test for data value and return color
   //pulled directly from module
@@ -230,13 +223,12 @@
     //build array of all values of the expressed attribute
     var domainArray = [];
     for (var i=0; i<data.length; i++){
-      var val = parseFloat(data[i].properties[expressed]);
+      var val = +(data[i].properties[expressed]);
       domainArray.push(val);
     };
 
     //assign array of expressed values as scale domain
     colorScale.domain(domainArray);
-
     return colorScale;
   };
 
@@ -275,7 +267,7 @@
     //create the bars themselves, add class that joins bars to watersheds
     bars.append("rect")
     .attr("class",  function (d){
-      return "bar a" + d.properties.HUC8;
+      return "bars a" + d.properties.HUC8;
     })
     .sort(function(a, b){
       return a.chartValue - b.chartValue;
@@ -292,7 +284,7 @@
       return colorScale(d.chartValue);
     })
     .on("mouseover", highlight)
-    .on("mouseout", unHighlight)
+    .on("mouseout", function (d) { unHighlight(d, colorScale); })
     .on("mousemove", moveLabel);
   };
 
@@ -351,6 +343,7 @@
   };
   //function to highlight enumeration units and bars
   function highlight(waterPoly){
+    setLabel(waterPoly);
     //change stroke
     var selected = d3.selectAll(".a" + waterPoly.properties.HUC8)
     .style('fill', 'tomato')
@@ -359,28 +352,23 @@
   };
 
   //function to remove highlighting on mouseout
-  function unHighlight(waterPoly) {
-    var selected = d3.select(".a" + waterPoly.properties.HUC8)
-      .style('fill', function(){
-            return getStyle(this, "fill");
-          });
+  function unHighlight(waterPoly, colorScale) {
+    var selected = d3.selectAll(".a" + waterPoly.properties.HUC8)
+    .style("fill", function(d){
+      //PROBLEM
+      return colorScale(d.chartValue)
+    });
 
-      function getStyle(element, styleName){
-        var styleText = d3.select(element)
-            .select("desc")
-            .text();
-        var styleObject = JSON.parse(styleText);
-
-        return styleObject[styleName];
+    d3.select(".infolabel")
+    .remove();
   };
-};
   //function to create dynamic label
   function setLabel(waterPoly){
     //label content
     var format = d3.format(",.2f")
     var a  = expressed.split("_")
-    var labelAttribute = "<h1>" + format(waterPoly.properties[expressed]) +
-    "</h1><b> mg/l of " + a[1] + "</b>";
+    var labelAttribute = "<h1>" + a[1] +": " + format(waterPoly.properties[expressed]) +
+    "</h1> mg/l";
 
     //create info label div
     var infolabel = d3.select("body")
@@ -391,17 +379,16 @@
 
     var regionName = infolabel.append("div")
     .attr("class", "labelname")
-    .html(waterPoly.properties.NAME);
+    .html("<b>Watershed:</b> " + waterPoly.properties.NAME);
   };
   //function to move info label with mouse
-function moveLabel(waterPoly){
-    setLabel(waterPoly);
+  function moveLabel(waterPoly){
     //use coordinates of mousemove event to set label coordinates
-    var x = d3.event.clientX + 5,
-        y = d3.event.clientY - 5;
+    var x = d3.event.clientX + 2,
+    y = d3.event.clientY + 2;
 
     d3.select(".infolabel")
-        .style("left", x + "px")
-        .style("top", y + "px");
-};
+    .style("left", x + "px")
+    .style("top", y + "px");
+  };
 })(); //last line of main.js
