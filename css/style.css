@@ -1,6 +1,8 @@
-body {
-  /*max-width: 1100px;*/
+#body {
+  max-width: 1100px;
   padding: 0;
+  margin: auto;
+  padding: 0px;
 }
 .map {
   width: 49%;
@@ -9,6 +11,7 @@ body {
   float: right;
 }
 .watershedBounds {
+  fill: #e0eeee;
   fill-opacity: .9;
   stroke: white;
   stroke-width: .5px;
@@ -26,27 +29,20 @@ body {
   stroke-width: .4px;
   stroke-opacity:1;
 }
-.numbers {
-  /*font-weight: bold;*/
-  fill: red;
-  /*stroke: white;
-  stroke-width: .1;*/
-  font-family: sans-serif;
-  font-size: 10px
-}
 #mainTitle {
   font-size: 1.4em;
 }
-#title h3, p {
-  margin: .2em;
+table {
+  width: 100%;
+  padding: 2px;
   font-family: sans-serif;
   text-align: left;
-  ;
 }
 p {
   font-size: .8em;
 }
 h3 {
+  margin: 0px;
   font-size: 1.5em;
 }
 .axis path,
