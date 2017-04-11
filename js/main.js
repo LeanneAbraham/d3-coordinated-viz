@@ -10,14 +10,14 @@
   function abbreviations (a){
     if (a === "DO") {return "Dissolved Oxygen"}
     else if (a === "TN") {return "Total Nitrogen"}
-    else if (a === "TCOLI") {return "Total Coliforms"}
+    else if (a === "TCOLI_M") {return "Total Coliforms"}
     else if (a === "TSS") {return "Total Suspended Solids"}
     else if (a === "TP") {return "Total Phosphorus"}
   };
+  var year  = "2016"
+  var pollutant = "DO"
 
-  var attr2015 = ["2015_DO", "2015_TCOLI_M", "2015_TN", "2015_TP", "2015_TSS"]; //list of attributes
-
-  var expressed = attr2015[0]; //initial attribute
+  var expressed = year + "_" + pollutant; //initial attribute
   //begin script when window loads
   //frame dimensions
   var width = $("#body").width(),
@@ -228,6 +228,12 @@
     //create a scale to size bars proportionally to frame
     yScale.domain(d3.extent(values));
 
+    //update axis
+    xAxis.scale(yScale);
+
+    //place axis
+    axis.call(xAxis);
+
     //create group for the bars
     var barContainer = chart.append('g');
 
@@ -260,13 +266,11 @@
   };
 
   //dropdown change listener handler
-  function changeAttribute(attribute){
-    //change the expressed attribute
-    expressed = attribute;
+  function changeAttribute(){
 
     //recreate the color scale
-    colorScale = makeColorScale(attribute);
-    waterPoly = cleanData (attribute);
+    colorScale = makeColorScale();
+    waterPoly = cleanData ();
 
     //recolor enumeration units
     var regions = d3.selectAll(".watershedBounds")
@@ -390,46 +394,58 @@
       var a  = expressed.split("_")
       return "Average " + abbreviations(a[1]) + "  in the Chesapeake Bay Subwatershed,  " + a[0];
     })
+
+    var yearChange =  d3.select("#yearChange")
+    .append("label")
+    .attr("class", "dropdownLabel")
+    .text("Select Year")
     //create a dropdown for the year
-    var yearDropDown = d3.select("#yearChange")
-    .append("select")
+    var yearDropDown = yearChange.append("select")
     .attr("class", "dropdown")
-    .append("option")
-    .attr("class", "titleOption")
-    .attr("disabled", "true")
-    .text("Select Year");
-
-    // .on("change", function(){
-    //   changeAttribute(this.value, waterPoly)
-    // });
-
-    //create a dropdown menu for attribute selection
-    //add select element
-    var dropdown = d3.select("#Pollutant")
-    .append("select")
-    .attr("class", "dropdown")
+    .attr("value", year)
     .on("change", function(){
-      changeAttribute(this.value)
+      year = this.value
+      //access the selected value and change with dropdown
+      expressed = this.value + "_" + pollutant;
+      changeAttribute()
     });
 
-    //add initial option
-    var titleOption = dropdown.append("option")
-    .attr("class", "titleOption")
-    .attr("disabled", "true")
-    .text("Select Pollutant");
-
-    //add attribute name options
-    var attrOptions = dropdown.selectAll("attrOptions")
-    .data(attr2015)
+    yearDropDown.selectAll(".yearOption")
+    .data(years)
     .enter()
     .append("option")
     .attr("value", function(a){
       return a;})
     .text(function(d){
-      //split the pollutants name to return name without year
-      a = d.split("_")
-      b = a[1]
-      return abbreviations(b);
+      return d;
+    });
+
+    //create a dropdown menu for attribute selection
+    //add select element
+    var pollutantChange =  d3.select("#yearChange")
+    .append("label")
+    .attr("class", "dropdownLabel")
+    .text("Select Pollutant")
+
+    var dropdown = pollutantChange.append("select")
+    .attr("class", "dropdown")
+    .attr("value", pollutant)
+    .on("change", function(){
+      pollutant = this.value
+      //access the selected value and change with dropdown
+      expressed = year + "_" + this.value;
+      changeAttribute()
+    });
+
+    //add attribute name options
+    var attrOptions = dropdown.selectAll("attrOptions")
+    .data(pollutants)
+    .enter()
+    .append("option")
+    .attr("value", function(a){
+      return a;})
+    .text(function(d){
+      return abbreviations(d);
     });
   };
   //create a legand with descriptive text

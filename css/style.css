@@ -8,6 +8,8 @@
 #footer {
   padding: 5px;
 }
+.dropdownLabel{display: inline-block;}
+
 .map {
   width: 49%;
   border: medium solid #999;
