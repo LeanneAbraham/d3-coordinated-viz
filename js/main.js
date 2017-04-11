@@ -315,7 +315,7 @@
     .text(function(){
       var a  = expressed.split("_")
       b = a[1]
-      return "Average " + abbreviations(b) + " in the Chesapeake Bay Subwatershed,  " + a[0];
+      return "Average " + abbreviations(b) + " in Chesapeake Bay Subwatersheds,  " + a[0];
     })
   };
 
@@ -393,7 +393,7 @@
     .attr("id","mainTitle")
     .text(function(){
       var a  = expressed.split("_")
-      return "Average " + abbreviations(a[1]) + "  in the Chesapeake Bay Subwatershed,  " + a[0];
+      return "Average " + abbreviations(a[1]) + "  in Chesapeake Bay Subwatersheds,  " + a[0];
     })
 
     //create a dropdown menu for attribute selection
