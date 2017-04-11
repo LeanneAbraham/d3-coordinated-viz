@@ -21,7 +21,7 @@
   //begin script when window loads
   //frame dimensions
   var width = $("#body").width(),
-  height = 580,
+  height = 600,
   translate = "translate(0," + (height - 19) + ")"
   // translate = "translate(0," + (height - (height * .036)) + ")";
 
@@ -386,6 +386,7 @@
 //creates the dropdowns and heading of the page
   function createDropdowns () {
     //add the title and dropdowns to the page
+
     //create chart title in div
     var header = d3.select('#header')
     .append('h3')
@@ -395,39 +396,10 @@
       return "Average " + abbreviations(a[1]) + "  in the Chesapeake Bay Subwatershed,  " + a[0];
     })
 
-    var yearChange =  d3.select("#yearChange")
-    .append("label")
-    .attr("class", "dropdownLabel")
-    .text("Select Year")
-    //create a dropdown for the year
-    var yearDropDown = yearChange.append("select")
-    .attr("class", "dropdown")
-    .attr("value", year)
-    .on("change", function(){
-      year = this.value
-      //access the selected value and change with dropdown
-      expressed = this.value + "_" + pollutant;
-      changeAttribute()
-    });
-
-    yearDropDown.selectAll(".yearOption")
-    .data(years)
-    .enter()
-    .append("option")
-    .attr("value", function(a){
-      return a;})
-    .text(function(d){
-      return d;
-    });
-
     //create a dropdown menu for attribute selection
     //add select element
-    var pollutantChange =  d3.select("#yearChange")
-    .append("label")
-    .attr("class", "dropdownLabel")
-    .text("Select Pollutant")
-
-    var dropdown = pollutantChange.append("select")
+    var dropdown = d3.select("#Pollutant")
+    .append("select")
     .attr("class", "dropdown")
     .attr("value", pollutant)
     .on("change", function(){
@@ -447,16 +419,37 @@
     .text(function(d){
       return abbreviations(d);
     });
+    //create a dropdown for the year
+    var yearDropDown = d3.select("#yearChange")
+    .append("select")
+    .attr("class", "dropdown")
+    .attr("value", pollutant)
+    .on("change", function(){
+      year = this.value
+      //access the selected value and change with dropdown
+      expressed = this.value + "_" + pollutant;
+      changeAttribute()
+    });
+
+    yearDropDown.selectAll(".yearOption")
+    .data(years)
+    .enter()
+    .append("option")
+    .attr("value", function(a){
+      return a;})
+    .text(function(d){
+      return d;
+    });
   };
   //create a legand with descriptive text
   function footer () {
     //create the container svg
     var legend = d3.select("#footer")
     .append("svg")
-    .attr("width", width-100)
-    .attr("height", 30);
+    .attr("width", 100)
+    .attr("height", 20);
 
-    var x = 30, y = 10
+    var x = 0, y = 0
     //adds legand swatch
     legend.append("rect")
     .attr("width", 20)

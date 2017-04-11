@@ -5,7 +5,6 @@
 		<meta name="viewport" content="width=device-width">
 		<title></title>
 		<!--put your external stylesheet links here-->
-		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 		<link rel="stylesheet" href="css/style.css">
 		<!--[if IE<9]>
 			<link rel="stylesheet" href="css/style.ie.css">
@@ -15,14 +14,27 @@
 		<div id="body">
 			<table>
 			<tr>
-				<td id ="header" colspan="2"></td>
-				<td id ="yearChange"></td>
-				<td id ="Pollutant"></td>
+				<td id ="header" rowspan="3"></td>
+				<td><p>Select Pollutant</p></td>
+				<td><p>Select Year</p></td>
+			</tr>
+			<tr>
+				<td id ="Pollutant" width="20%"></td>
+				<td id ="yearChange" width="20%"></td>
+			</tr>
+			<tr>
+				<td id="footer" colspan="2"></td>
 			</tr>
 		</table>
 		<div id="mapChart"></div>
+		<div id="credits">
+			<table width="100%">
+				<tr>
+					<td width="40%"><p>Map and Chart By Leanne Abraham</br>April 2017</p></td>
+					<td><p>Data Courtesy of:</br>Chesapeake Bay Program</br> <a href="http://www.chesapeakebay.net/data/downloads/cbp_water_quality_database_1984_present">Chesapeake Bay Program Water Quality Database 1984-present</a></p></td>
+				</tr>
+			</table>
 		</div>
-		<div id="footer">
 		</div>
 
 		<!--put your external script links here-->

@@ -1,5 +1,5 @@
 #body {
-  font-family: 'Roboto', sans-serif !important;
+  font-family: sans-serif !important;
   max-width: 1000px;
   padding: 0;
   margin: auto;
@@ -42,14 +42,26 @@
   float: right;
 }
 #mainTitle {
-  font-size: 1.4em;
+  font-size: 2em;
 }
-table {
+.credits td {
+  padding: 0px 0px 0px 10px;
+}
+tbody {
   width: 100%;
-  padding: 2px;
+  padding: 1px;
+  margin: 0px;
   text-align: left;
 }
-p {font-size: .8em;}
+tr, td {
+  vertical-align: top;
+  margin: 0px;
+  padding: 0px 5px 0px 0px;
+}
+p {
+  margin: 0px;
+  font-size: .8em;
+}
 h3 {
   margin: 0px;
   font-size: 1.5em;
