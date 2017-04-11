@@ -20,7 +20,7 @@
   var expressed = attr2015[0]; //initial attribute
   //begin script when window loads
   //frame dimensions
-  var width = ($("#body").width()),
+  var width = $("#body").width(),
   height = 580,
   translate = "translate(0," + (height - 19) + ")"
   // translate = "translate(0," + (height - (height * .036)) + ")";
@@ -215,12 +215,12 @@
       //attaches object back to the waterPoly
       waterPoly[i].chartValue = value;
     }
+    //returns waterPoly with this new value
     return waterPoly;
   };
 
   //function to create coordinated bar chart
   function setChart(){
-
     waterPoly = cleanData ();
 
     //set the range and domain for the bars
@@ -311,7 +311,7 @@
     .text(function(){
       var a  = expressed.split("_")
       b = a[1]
-      return "Average Amount of " + abbreviations(b) + " per Chesapeake Bay Subwatershed in " + a[0];
+      return "Average " + abbreviations(b) + " in the Chesapeake Bay Subwatershed,  " + a[0];
     })
   };
 
@@ -388,7 +388,7 @@
     .attr("id","mainTitle")
     .text(function(){
       var a  = expressed.split("_")
-      return "Average Amount of " + abbreviations(a[1]) + " per Chesapeake Bay Subwatershed in " + a[0];
+      return "Average " + abbreviations(a[1]) + "  in the Chesapeake Bay Subwatershed,  " + a[0];
     })
     //create a dropdown for the year
     var yearDropDown = d3.select("#yearChange")
@@ -397,7 +397,7 @@
     .append("option")
     .attr("class", "titleOption")
     .attr("disabled", "true")
-    .text("Year");
+    .text("Select Year");
 
     // .on("change", function(){
     //   changeAttribute(this.value, waterPoly)
@@ -437,14 +437,16 @@
     //create the container svg
     var legend = d3.select("#footer")
     .append("svg")
-    .attr("width", width/2)
-    .attr("height", 20);
+    .attr("width", width-100)
+    .attr("height", 30);
 
+    var x = 30, y = 10
     //adds legand swatch
     legend.append("rect")
     .attr("width", 20)
     .attr("height", 20)
-    .attr("x", 10)
+    .attr("x", x)
+    .attr("y", y)
     .style("fill", "#e0eeee")
     .style("border");
 
@@ -454,7 +456,7 @@
     .attr("font-family","sans-serif")
     .attr("font-weight","bold")
     .html("No Data")
-    .attr("x", 35)
-    .attr("y", 15);
+    .attr("x", x+25)
+    .attr("y", y+15);
   };
 })(); //last line of main.js
