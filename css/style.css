@@ -1,8 +1,12 @@
 #body {
-  max-width: 1100px;
+  max-width: 1000px;
   padding: 0;
   margin: auto;
   padding: 0px;
+}
+#footer {
+  margin: 0;
+  padding: 5px 5px 0 0;
 }
 .map {
   width: 49%;
@@ -10,24 +14,30 @@
   border-width: thin;
   float: right;
 }
-.watershedBounds {
+.watershedBounds, .bars {
   fill: #e0eeee;
-  fill-opacity: .9;
+  fill-opacity: .8;
   stroke: white;
   stroke-width: .5px;
 }
-.chart {
-  width: 50%;
-  border: medium solid #999;
-  border-width: thin;
-  z-index: -1;
-  /*float: center;*/
-}
 .states {
-  fill-opacity: .0;
+  fill: #DCDCDC;
   stroke: black;
   stroke-width: .4px;
   stroke-opacity:1;
+}
+.chart {
+  width: 41%;
+  border: medium solid #999;
+  border-width: thin;
+  float: left;
+  padding: 0 10px 0 10px;
+}
+.map {
+  width: 55%;
+  border: medium solid #999;
+  border-width: thin;
+  float: right;
 }
 #mainTitle {
   font-size: 1.4em;
